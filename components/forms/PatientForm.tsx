@@ -22,13 +22,11 @@ export enum FormFieldType {
   SKELETON = "skeleton",
 }
 
-
-
 const PatientForm = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  // 1. Define your form.
+  // Define your form.
   const form = useForm<z.infer<typeof UserFormValidation>>({
     resolver: zodResolver(UserFormValidation),
     defaultValues: {
@@ -38,7 +36,7 @@ const PatientForm = () => {
     },
   });
 
-  // 2. Define a submit handler.
+  // Define a submit handler.
   async function onSubmit(values: z.infer<typeof UserFormValidation>) {
     setIsLoading(true);
 
@@ -48,18 +46,16 @@ const PatientForm = () => {
         email: values.email,
         phone: values.phone,
       };
-      // 3. Call the createUser function from patient.actions.ts & pass in the userData.
+      // Call the createUser function from patient.actions.ts & pass in the userData.
       const user = await createUser(userData);
 
       if (user) router.push(`/patients/${user.$id}/register`);
   
-
     } catch (error) {
       console.log(error);
     }
 
     setIsLoading(false);
-
     // console.log(values);
   };
 
