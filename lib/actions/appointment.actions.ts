@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use server";
 
@@ -99,7 +100,24 @@ export const sendSMSNotification = async (userId: string, content: string) => {
   }
 };
 
-//  UPDATE APPOINTMENT
+// Send EMAIL NOTIFICATION
+export const sendEmailNotification = async (userId: string, content: string) => {
+  try {
+    // https://appwrite.io/docs/references/1.5.x/server-nodejs/messaging#createEmail
+    const message = await messaging.createEmail(
+      ID.unique(),     // messageId
+      'Notification',  // subject
+      content,         // content
+      [],              // topics (optional)
+      [userId] // Recipients
+    );
+    return parseStringify(message);
+  } catch (error) {
+    console.error("An error occurred while sending Email:", error);
+  }
+};
+
+//  UPDATE APPOINTMENT (Use SMS & Email notifications)
 export const updateAppointment = async ({
   appointmentId,
   userId,
@@ -117,7 +135,7 @@ export const updateAppointment = async ({
 
     if (!updatedAppointment) throw Error;
 
-    // TODO Send SMS notification
+    // Send SMS notification
     const smsMessage = `Greetings from CarePulse. ${
       type === "schedule"
         ? `Your appointment is confirmed for ${
@@ -128,6 +146,18 @@ export const updateAppointment = async ({
           } is cancelled. Reason:  ${appointment.cancellationReason}`
     }.`;
     await sendSMSNotification(userId, smsMessage);
+
+    // Send Email notification
+    const emailMessage = `Greetings from CarePulse. ${
+      type === "schedule"
+        ? `Your appointment is confirmed for ${
+            formatDateTime(appointment.schedule!).dateTime
+          } with Dr. ${appointment.primaryPhysician}`
+        : `We regret to inform that your appointment for ${
+            formatDateTime(appointment.schedule!).dateTime
+          } is cancelled. Reason:  ${appointment.cancellationReason}`
+    }.`;
+    await sendEmailNotification(userId, emailMessage);
 
     revalidatePath("/admin");
     return parseStringify(updatedAppointment);
